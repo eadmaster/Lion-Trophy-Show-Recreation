@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>The Lion Trophy Show Recreation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="game-container">
+        <video id="video-player" playsinline></video>
+
+        <div id="start-screen">
+            <div class="start-content">
+                <p class="game-subtitle">Recreation Project by eadmaster</p>
+                <button id="start-btn" class="glow-button">START GAME</button>
+            </div>
+        </div>
+
+
+        <div id="qte-overlay" class="hidden">
+            <div id="qte-prompt">PRESS <span id="target-number">5</span></div>
+
+            <div id="qte-keys" class="qte-keys hidden"></div>
+        </div>
+
+        <div class="button-grid">
+            <div class="qte-btn" id="btn-7">7</div>
+            <div class="qte-btn" id="btn-8">8</div>
+            <div class="qte-btn" id="btn-9">9</div>
+            <div class="qte-btn" id="btn-4">4</div>
+            <div class="qte-btn" id="btn-5">5</div>
+            <div class="qte-btn" id="btn-6">6</div>
+            <div class="qte-btn" id="btn-1">1</div>
+            <div class="qte-btn" id="btn-2">2</div>
+            <div class="qte-btn" id="btn-3">3</div>
+
+            <div class="qte-btn" id="btn-star">*</div>
+            <div class="qte-btn" id="btn-0">0</div>
+            <div class="qte-btn" id="btn-hash">#</div>
+        </div>
+
+        <div id="lives-container"></div>
+        <input type="text" id="player-name-input" value="PLAYER 1" spellcheck="false" />
+        <div id="score-counter">0</div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+
+</html>
