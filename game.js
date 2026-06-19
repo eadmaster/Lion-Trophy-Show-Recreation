@@ -439,13 +439,18 @@ const sceneData = {
     "death": {
         videoSrc: "assets/death.mp4",
         qteStart: null,
-        onEnd: "opening" // Restart game on completion
+        onEnd: "gameover"
+    },
+    "gameover": {
+        videoSrc: "assets/gameover.mkv",
+        qteStart: null,
+        onEnd: "opening" // Restart game
     },
     "ending": {
-        videoSrc: "assets/ending.png",
+        videoSrc: "assets/ending.mkv",
         qteStart: null,
         correctKey: "0",
-        onEnd: "opening" // Restart game on completion
+        onEnd: "opening" // Restart game
     },
 };
 
@@ -458,6 +463,33 @@ const startBtn = document.getElementById("start-btn");
 const skipPrompt = document.getElementById("skip-prompt");
 const scoreCounter = document.getElementById("score-counter");
 const playerNameInput = document.getElementById("player-name-input");
+const numpadTooltip = document.getElementById("numpad-tooltip");
+
+
+function showNumpadTooltip() {
+    const defaultText = "PLAY WITH THE NUMPAD!";
+    numpadTooltip.textContent = defaultText;
+    numpadTooltip.classList.remove("hidden");
+}
+showNumpadTooltip();
+// Hide tooltip after the first key press and update text based on NumLock state
+let tooltipDismissed = false;
+window.addEventListener("keydown", (e) => {
+    // If the start screen is visible and a Numpad key is pressed, start the opening scene
+    if (!startScreen.classList.contains("hidden") && e.code && e.code.startsWith("Numpad")) {
+        startScreen.classList.add("hidden");
+        playScene("opening");
+        return;
+    }
+    if (!tooltipDismissed) {
+        tooltipDismissed = true;
+        const numLockOn = e.getModifierState && e.getModifierState("NumLock");
+        numpadTooltip.textContent = numLockOn ? "PLAY WITH THE NUMPAD!" : "TOGGLE NUMLOCK!";
+        setTimeout(() => {
+            numpadTooltip.classList.add("hidden");
+        }, 500);
+    }
+});
 
 // Lives system
 let lives = 3;
@@ -523,6 +555,7 @@ function playScene(sceneId, startAt = 0) {
             nextSceneResumeTime = 0;
             previousSceneId = 'game';
         }
+        //nextSceneResumeTime = 190;  // debug ending
         lives--;
         updateLivesUI();
         if (lives <= 0) {
@@ -532,7 +565,7 @@ function playScene(sceneId, startAt = 0) {
             score = 0;
             updateScoreUI();
             // Skip playing death video; go straight to opening
-            playScene('opening');
+            playScene('gameover');
             return;
         }
     }
@@ -671,9 +704,31 @@ video.addEventListener("timeupdate", () => {
 // 5. Handle Video Ending (For scenes without QTEs or after death animations)
 video.addEventListener("ended", () => {
     if (currentSceneId === "death") {
+        // Existing death handling: resume previous scene
         playScene(previousSceneId, nextSceneResumeTime);
         return;
     }
+    if (currentSceneId === "ending") {
+        // Pause on the last frame and wait for any Numpad key press
+        video.pause();
+        const onKey = (e) => {
+            if (e.code && e.code.startsWith("Numpad")) {
+                window.removeEventListener("keydown", onKey);
+                const endingScene = sceneData[currentSceneId];
+                if (endingScene && endingScene.onEnd) {
+                    playScene(endingScene.onEnd);
+                }
+            }
+        };
+        window.addEventListener("keydown", onKey);
+        return;
+    }
+
+    if (currentSceneId === "death") {
+        playScene(previousSceneId, nextSceneResumeTime);
+        return;
+    }
+
     const scene = sceneData[currentSceneId];
     if (scene && scene.onEnd) {
         playScene(scene.onEnd);
@@ -831,6 +886,12 @@ window.addEventListener("keyup", (event) => {
 // 8. Listen for screen button clicks
 document.querySelectorAll(".qte-btn").forEach(btn => {
     btn.addEventListener("mousedown", () => {
+        // If start screen is visible, start the opening scene
+        if (!startScreen.classList.contains("hidden")) {
+            startScreen.classList.add("hidden");
+            playScene("opening");
+            return;
+        }
         // Remove yellow active-target highlight during press
         document.querySelectorAll('.qte-btn.active-target').forEach(b => b.classList.remove('active-target'));
         const key = btn.textContent.trim();
