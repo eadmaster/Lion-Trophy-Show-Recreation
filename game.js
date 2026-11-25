@@ -476,7 +476,7 @@ showNumpadTooltip();
 let tooltipDismissed = false;
 window.addEventListener("keydown", (e) => {
     // If the start screen is visible and a Numpad key is pressed, start the opening scene
-    if (!startScreen.classList.contains("hidden") && e.code && e.code.startsWith("Numpad")) {
+    if (!startScreen.classList.contains("hidden") && (e.code && e.code.startsWith("Numpad") || qwertyToNumpad(e.key))) {
         startScreen.classList.add("hidden");
         playScene("opening");
         return;
@@ -800,6 +800,17 @@ function stopDTMFTone(key) {
     delete activeTones[key];
 }
 
+// Map QWEASDZXC + space keys to numpad digits
+function qwertyToNumpad(key) {
+    const map = {
+        "q": "7", "w": "8", "e": "9",
+        "a": "4", "s": "5", "d": "6",
+        "z": "1", "x": "2", "c": "3",
+        " ": "0"
+    };
+    return map[String(key).toLowerCase()] || null;
+}
+
 // 6. Unified Input Handling (handles keyboard digits/numpad and screen buttons)
 function handleInput(key) {
     // If playing the opening cinematic, any key/click skips it
@@ -861,24 +872,30 @@ window.addEventListener("keydown", (event) => {
     // Do not capture game inputs if typing in the player name input
     if (event.target.tagName === 'INPUT') return;
 
-    if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(event.key)) {
+    const numpadKey = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(event.key)
+        ? event.key
+        : qwertyToNumpad(event.key);
+    if (numpadKey) {
         // Remove yellow active-target highlight during press
         //document.querySelectorAll('.qte-btn.active-target').forEach(btn => btn.classList.remove('active-target'));
-        startDTMFTone(event.key);
-        const btn = document.getElementById(`btn-${event.key}`);
+        startDTMFTone(numpadKey);
+        const btn = document.getElementById(`btn-${numpadKey}`);
         if (btn) btn.classList.add("pressed");
 
         // Skip opening or process QTE
-        handleInput(event.key);
+        handleInput(numpadKey);
     }
 });
 
 window.addEventListener("keyup", (event) => {
     if (event.target.tagName === 'INPUT') return;
 
-    if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(event.key)) {
-        stopDTMFTone(event.key);
-        const btn = document.getElementById(`btn-${event.key}`);
+    const numpadKey = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(event.key)
+        ? event.key
+        : qwertyToNumpad(event.key);
+    if (numpadKey) {
+        stopDTMFTone(numpadKey);
+        const btn = document.getElementById(`btn-${numpadKey}`);
         if (btn) btn.classList.remove("pressed");
     }
 });
