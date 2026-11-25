@@ -811,7 +811,31 @@ function qwertyToNumpad(key) {
     return map[String(key).toLowerCase()] || null;
 }
 
-// 6. Unified Input Handling (handles keyboard digits/numpad and screen buttons)
+function showScoreIncrease(amount) {
+    if (!scoreCounter && !document.getElementById('player-name-input')) return;
+    if (!scoreCounter || !scoreCounter.parentElement) return;
+    const parent = scoreCounter.parentElement;
+    if (getComputedStyle(parent).position === "static") parent.style.position = "relative";
+    const el = document.createElement("div");
+    el.textContent = `+${amount}`;
+    el.style.position = "absolute";
+    el.style.left = (scoreCounter.offsetLeft + scoreCounter.offsetWidth + 8) + "px";
+    el.style.top = scoreCounter.offsetTop + "px";
+    el.style.color = "#ffcc00";
+    el.style.fontWeight = "bold";
+    el.style.fontSize = "24px";
+    el.style.pointerEvents = "none";
+    el.style.opacity = "1";
+    el.style.transition = "opacity 1s ease, transform 1s ease";
+    parent.appendChild(el);
+    requestAnimationFrame(() => {
+        el.style.transform = "translateY(-20px)";
+        el.style.opacity = "0";
+    });
+    setTimeout(() => el.remove(), 3000);
+}
+
+// Unified Input Handling (handles keyboard digits/numpad and screen buttons)
 function handleInput(key) {
     // If playing the opening cinematic, any key/click skips it
     if (currentSceneId === "opening") {
@@ -835,6 +859,7 @@ function handleInput(key) {
         if (activeQte.points) {
             score += activeQte.points;
             updateScoreUI();
+            showScoreIncrease(activeQte.points);
         }
         // Transition on success if defined
         if (activeQte.onSuccess) {
